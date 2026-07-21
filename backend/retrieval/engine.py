@@ -32,12 +32,14 @@ class RetrievalEngine:
             model=settings.openai_embedding_model,
             openai_api_key=settings.openai_api_key,
         )
+
         self.llm = ChatOpenAI(
             model=settings.openai_model,
             temperature=0,
             openai_api_key=settings.openai_api_key,
             streaming=True,
         )
+
         self.vector_store = PineconeVectorStore(
             index_name=settings.pinecone_index_name,
             embedding=self.embeddings,

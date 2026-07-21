@@ -14,16 +14,18 @@ from sqlalchemy.orm import Session
 from core.config import get_settings
 from core.database import Document, DocumentStatus
 
-
 settings = get_settings()
 
 
 class DocumentIngestionPipeline:
     def __init__(self):
+        os.environ["PINECONE_API_KEY"] = settings.pinecone_api_key
+
         self.embeddings = OpenAIEmbeddings(
             model=settings.openai_embedding_model,
             openai_api_key=settings.openai_api_key,
         )
+
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200,
