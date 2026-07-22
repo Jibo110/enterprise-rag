@@ -63,69 +63,31 @@ export default function Home() {
     ]);
 
     try {
-      const response = await fetch("http://localhost:8000/query/stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('http://localhost:8000/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question: input.trim(),
-          namespace: "default",
+          namespace: 'default',
         }),
-      });
+      })
 
-      const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
-      let fullContent = "";
+      const data = await response.json()
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.token) {
-                fullContent += data.token;
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantId
-                      ? { ...msg, content: fullContent }
-                      : msg,
-                  ),
-                );
-              }
-              if (data.done) {
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantId
-                      ? { ...msg, isStreaming: false }
-                      : msg,
-                  ),
-                );
-              }
-            } catch {}
-          }
-        }
-      }
+      setMessages(prev => prev.map(msg =>
+        msg.id === assistantId
+          ? { ...msg, content: data.answer, sources: data.sources, isStreaming: false }
+          : msg
+      ))
     } catch (err) {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantId
-            ? {
-                ...msg,
-                content: "Something went wrong. Please try again.",
-                isStreaming: false,
-              }
-            : msg,
-        ),
-      );
+      setMessages(prev => prev.map(msg =>
+        msg.id === assistantId
+          ? { ...msg, content: 'Something went wrong. Please try again.', isStreaming: false }
+          : msg
+      ))
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
 
   return (
     <div className="flex h-screen bg-gray-50">
